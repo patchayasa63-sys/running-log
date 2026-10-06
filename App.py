@@ -424,37 +424,13 @@ if st.button(
         )
 
 
-        file_exists = os.path.exists(
-            file_name
-        )
-
-
-        with open(
-            file_name,
-            "a",
-            newline="",
-            encoding="utf-8"
-        ) as file:
-
-            writer = csv.writer(file)
-
-
-            if not file_exists:
-
-                writer.writerow([
-                    "Date",
-                    "Distance_km",
-                    "Time",
-                    "Pace"
-                ])
-
-
-            writer.writerow([
-                run_date,
-                distance,
-                run_time,
-                pace
-            ])
+        # บันทึกข้อมูลลง Supabase
+        supabase.table("runs").insert({
+            "date": str(run_date),
+            "distance_km": distance,
+            "time": run_time,
+            "pace": pace
+        }).execute()
 
 
         st.success(
