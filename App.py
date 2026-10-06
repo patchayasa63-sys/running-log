@@ -84,17 +84,68 @@ def seconds_to_text(total_seconds):
 
 
 # =========================
-# อ่านข้อมูลไว้ก่อน
+# อ่านข้อมูลจาก Supabase
 # =========================
 
-data = None
+def load_running_data():
 
-if os.path.exists(file_name):
+    response = (
+        supabase
+        .table("runs")
+        .select("id,date,distance_km,time,pace")
+        .order("id")
+        .execute()
+    )
 
-    data = pd.read_csv(file_name)
+    if not response.data:
+        return None
+
+    data = pd.DataFrame(response.data)
+
+    # ตัดแถวที่ข้อมูลหลักไม่ครบ
+    data = data.dropna(
+        subset=[
+            "date",
+            "distance_km",
+            "time",
+            "pace"
+        ]
+    )
+
+    # รับเฉพาะเวลาในรูปแบบ HH:MM:SS
+    data = data[
+        data["time"]
+        .astype(str)
+        .str.match(r"^\d{2}:\d{2}:\d{2}$")
+    ]
 
     if data.empty:
-        data = None
+        return None
+
+    # เปลี่ยนชื่อคอลัมน์ให้ตรงกับโค้ดเดิม
+    data = data.rename(
+        columns={
+            "date": "Date",
+            "distance_km": "Distance_km",
+            "time": "Time",
+            "pace": "Pace"
+        }
+    )
+
+    # ไม่ต้องแสดง id ในส่วนสถิติ/ประวัติเดิม
+    data = data[
+        [
+            "Date",
+            "Distance_km",
+            "Time",
+            "Pace"
+        ]
+    ]
+
+    return data
+
+
+data = load_running_data()
 
 
 # =========================
@@ -472,16 +523,10 @@ if st.button(
 
 
 # =========================
-# โหลดข้อมูลใหม่
+# โหลดข้อมูลใหม่จาก Supabase
 # =========================
 
-if os.path.exists(file_name):
-
-    data = pd.read_csv(file_name)
-
-else:
-
-    data = None
+data = load_running_data()
 
 
 # =========================
