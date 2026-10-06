@@ -4,6 +4,7 @@ from dateutil.relativedelta import relativedelta
 import csv
 import os
 import pandas as pd
+from supabase import create_client
 
 
 file_name = "running_data.csv"
@@ -11,9 +12,22 @@ file_name = "running_data.csv"
 
 
 st.set_page_config(
+   
     page_title="Running Log",
     page_icon="🏃",
     layout="centered"
+)
+
+# =========================
+# เชื่อมต่อ Supabase
+# =========================
+
+supabase_url = st.secrets["SUPABASE_URL"]
+supabase_key = st.secrets["SUPABASE_KEY"]
+
+supabase = create_client(
+    supabase_url,
+    supabase_key
 )
 
 
