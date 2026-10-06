@@ -1,13 +1,10 @@
 import streamlit as st
 from datetime import date
 from dateutil.relativedelta import relativedelta
-import csv
-import os
 import pandas as pd
 from supabase import create_client
 
 
-file_name = "running_data.csv"
 
 
 
@@ -174,7 +171,7 @@ with menu_col:
 
             date_data = data.copy()
 
-            # แปลงวันที่จาก CSV เป็นวันที่จริง
+            # แปลงวันที่จาก Supabase เป็นวันที่จริง
             date_data["Date"] = pd.to_datetime(
                 date_data["Date"],
                 errors="coerce"
@@ -812,20 +809,19 @@ with st.expander(
         "ฉันต้องการลบประวัติการวิ่งทั้งหมด"
     )
 
-
     if st.button(
         "🗑️ รีเซ็ตข้อมูล"
     ):
 
         if confirm_reset:
 
-            if os.path.exists(
-                file_name
-            ):
+            try:
 
-                os.remove(
-                    file_name
-                )
+                # ลบข้อมูลทุกแถวในตาราง runs
+                supabase.table("runs") \
+                    .delete() \
+                    .gte("id", 0) \
+                    .execute()
 
                 st.success(
                     "ลบข้อมูลการวิ่งทั้งหมดเรียบร้อยแล้ว"
@@ -833,16 +829,17 @@ with st.expander(
 
                 st.rerun()
 
+            except Exception as e:
 
-            else:
-
-                st.info(
-                    "ยังไม่มีข้อมูลให้ลบ"
+                st.error(
+                    "ไม่สามารถลบข้อมูลได้"
                 )
 
+                st.write(e)
 
         else:
 
             st.warning(
                 "กรุณาติ๊กยืนยันก่อนรีเซ็ตข้อมูล"
             )
+
